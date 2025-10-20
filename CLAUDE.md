@@ -1,0 +1,1 @@
+- Always make sure to run cargo fmt, and check and fix any warnings in cargo clippy unless there are concrete next steps which make the warnings acceptable.

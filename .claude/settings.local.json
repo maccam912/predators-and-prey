@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:taintedcoders.com)",
+      "WebSearch",
+      "Bash(cargo run)",
+      "WebFetch(domain:bevy.org)",
+      "Bash(cargo test -- --nocapture)",
+      "Bash(cargo fmt --check)",
+      "Bash(cargo clippy -- -W clippy::all)",
+      "Bash(cargo fmt)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
