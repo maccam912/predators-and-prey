@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predators and Prey - Ecology Simulator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            background-color: #000;
+            display: block;
+        }
+
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        #loading.hidden {
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #info {
+            color: #ccc;
+            padding: 20px;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        #info h1 {
+            color: #fff;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading Ecology Simulator...</div>
+    </div>
+
+    <div id="game-container">
+        <div id="info">
+            <h1>Predators and Prey - Ecology Simulator</h1>
+            <p>A simulation of a simple ecosystem with plants, prey, and predators.</p>
+            <p>Watch as the populations interact and evolve over time!</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import init from './predators-and-prey.js';
+
+        async function run() {
+            try {
+                await init();
+                document.getElementById('loading').classList.add('hidden');
+            } catch (error) {
+                console.error('Failed to initialize WASM module:', error);
+                document.getElementById('loading').innerHTML =
+                    '<div style="color: #ff6b6b;">Failed to load the simulation. Please check the console for errors.</div>';
+            }
+        }
+
+        run();
+    </script>
+</body>
+</html>

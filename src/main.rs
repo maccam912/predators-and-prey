@@ -13,7 +13,17 @@ use systems::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Predators and Prey - Ecology Simulator".into(),
+                resolution: (1280, 720).into(),
+                canvas: Some("#game-container".into()),
+                fit_canvas_to_parent: true,
+                prevent_default_event_handling: false,
+                ..default()
+            }),
+            ..default()
+        }))
         .init_resource::<SimulationConfig>()
         .init_resource::<PopulationStats>()
         .init_resource::<SunlightLevel>()
