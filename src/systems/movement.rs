@@ -132,15 +132,15 @@ pub fn prey_movement_system(
         }
 
         // Move towards nearest plant if hungry and not fleeing strongly
-        if desired_direction.length() < 0.5 && threat_level < 0.3 {
-            if let Some(nearest_plant) = plants
+        if desired_direction.length() < 0.5
+            && threat_level < 0.3
+            && let Some(nearest_plant) = plants
                 .iter()
                 .min_by_key(|p| (p.translation.xy() - transform.translation.xy()).length() as i32)
-            {
-                let to_plant = nearest_plant.translation.xy() - transform.translation.xy();
-                if to_plant.length() < genome.vision_range {
-                    desired_direction += to_plant.normalize() * 0.5;
-                }
+        {
+            let to_plant = nearest_plant.translation.xy() - transform.translation.xy();
+            if to_plant.length() < genome.vision_range {
+                desired_direction += to_plant.normalize() * 0.5;
             }
         }
 
@@ -193,10 +193,10 @@ pub fn predator_hunting_system(
         predators.iter_mut()
     {
         // Validate target
-        if let Some(target) = hunt_target.0 {
-            if !prey_entities.contains(&target) {
-                hunt_target.0 = None;
-            }
+        if let Some(target) = hunt_target.0
+            && !prey_entities.contains(&target)
+        {
+            hunt_target.0 = None;
         }
 
         let mut desired_direction = Vec2::ZERO;
@@ -235,11 +235,11 @@ pub fn predator_hunting_system(
         }
 
         // Move toward target
-        if let Some(target) = hunt_target.0 {
-            if let Some(target_pos) = prey_positions.get(&target) {
-                let to_prey = *target_pos - transform.translation.xy();
-                desired_direction = to_prey.normalize();
-            }
+        if let Some(target) = hunt_target.0
+            && let Some(target_pos) = prey_positions.get(&target)
+        {
+            let to_prey = *target_pos - transform.translation.xy();
+            desired_direction = to_prey.normalize();
         }
 
         // Add separation from other predators (avoid crowding)
