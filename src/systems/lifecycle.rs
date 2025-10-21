@@ -52,8 +52,8 @@ pub fn reproduction_system(
 
     // Plant reproduction
     for (entity, transform, energy, genome) in plants.iter() {
-        if energy.0 > genome.reproduction_threshold && rng.gen_bool(0.01) {
-            let offset = Vec2::new(rng.gen_range(-30.0..30.0), rng.gen_range(-30.0..30.0));
+        if energy.0 > genome.reproduction_threshold && rng.random_bool(0.01) {
+            let offset = Vec2::new(rng.random_range(-30.0..30.0), rng.random_range(-30.0..30.0));
             commands.spawn((
                 Plant,
                 genome.clone(),
@@ -82,8 +82,8 @@ pub fn reproduction_system(
     let prey_reproduction_rate = if prey_count < 10 { 0.01 } else { 0.005 };
 
     for (entity, transform, energy, genome) in prey.iter() {
-        if energy.0 > genome.reproduction_threshold && rng.gen_bool(prey_reproduction_rate) {
-            let offset = Vec2::new(rng.gen_range(-20.0..20.0), rng.gen_range(-20.0..20.0));
+        if energy.0 > genome.reproduction_threshold && rng.random_bool(prey_reproduction_rate) {
+            let offset = Vec2::new(rng.random_range(-20.0..20.0), rng.random_range(-20.0..20.0));
             commands.spawn((
                 Prey,
                 genome.clone(),
@@ -114,8 +114,8 @@ pub fn reproduction_system(
     let predator_reproduction_rate = if predator_count < 10 { 0.006 } else { 0.003 };
 
     for (entity, transform, energy, genome) in predators.iter() {
-        if energy.0 > genome.reproduction_threshold && rng.gen_bool(predator_reproduction_rate) {
-            let offset = Vec2::new(rng.gen_range(-20.0..20.0), rng.gen_range(-20.0..20.0));
+        if energy.0 > genome.reproduction_threshold && rng.random_bool(predator_reproduction_rate) {
+            let offset = Vec2::new(rng.random_range(-20.0..20.0), rng.random_range(-20.0..20.0));
             commands.spawn((
                 Predator,
                 genome.clone(),

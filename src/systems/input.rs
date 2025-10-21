@@ -40,23 +40,27 @@ impl Default for CameraController {
 
 /// System to handle camera zoom and pan controls
 pub fn camera_controls_system(
-    mut camera_query: Query<(&mut Transform, &mut OrthographicProjection), With<Camera>>,
+    mut camera_query: Query<(&mut Transform, &mut Projection), With<Camera>>,
     mut camera_controller_query: Query<&mut CameraController>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
-    mut mouse_motion_events: EventReader<MouseMotion>,
-    mut mouse_wheel_events: EventReader<MouseWheel>,
-    mut touch_events: EventReader<TouchInput>,
+    mut mouse_motion_events: MessageReader<MouseMotion>,
+    mut mouse_wheel_events: MessageReader<MouseWheel>,
+    mut touch_events: MessageReader<TouchInput>,
     windows: Query<&Window>,
 ) {
-    let Ok((mut camera_transform, mut projection)) = camera_query.get_single_mut() else {
+    let Ok((mut camera_transform, mut projection)) = camera_query.single_mut() else {
         return;
     };
 
-    let Ok(mut controller) = camera_controller_query.get_single_mut() else {
+    let Ok(mut controller) = camera_controller_query.single_mut() else {
         return;
     };
 
-    let current_scale = projection.scale;
+    let Projection::Orthographic(ortho) = projection.as_mut() else {
+        return;
+    };
+
+    let current_scale = ortho.scale;
 
     // === DESKTOP: Mouse Wheel Zoom ===
     for event in mouse_wheel_events.read() {
@@ -67,7 +71,7 @@ pub fn camera_controls_system(
 
         let new_scale = (current_scale - zoom_delta * controller.zoom_speed)
             .clamp(controller.min_zoom, controller.max_zoom);
-        projection.scale = new_scale;
+        ortho.scale = new_scale;
     }
 
     // === DESKTOP: Mouse Drag Pan ===
@@ -119,7 +123,9 @@ pub fn camera_controls_system(
 
                     if controller.touch_state.positions.len() == 1 {
                         // Single touch: Pan
-                        let window = windows.single();
+                        let Ok(window) = windows.single() else {
+                            continue;
+                        };
                         let window_size = Vec2::new(window.width(), window.height());
 
                         // Calculate delta in world space
@@ -141,7 +147,7 @@ pub fn camera_controls_system(
                             let zoom_factor = initial_distance / current_distance;
                             let new_scale = (current_scale * zoom_factor)
                                 .clamp(controller.min_zoom, controller.max_zoom);
-                            projection.scale = new_scale;
+                            ortho.scale = new_scale;
                         }
 
                         controller.touch_state.initial_distance = Some(current_distance);
