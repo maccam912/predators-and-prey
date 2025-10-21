@@ -17,9 +17,9 @@ impl Genome {
         let mut rng = rand::rng();
         Self {
             speed: 0.0,
-            size: rng.gen_range(0.5..1.5),
-            metabolism: rng.gen_range(0.3..0.7),
-            reproduction_threshold: rng.gen_range(80.0..120.0),
+            size: rng.random_range(0.5..1.5),
+            metabolism: rng.random_range(0.3..0.7),
+            reproduction_threshold: rng.random_range(80.0..120.0),
             vision_range: 0.0,
         }
     }
@@ -27,22 +27,22 @@ impl Genome {
     pub fn random_prey() -> Self {
         let mut rng = rand::rng();
         Self {
-            speed: rng.gen_range(50.0..150.0),
-            size: rng.gen_range(1.0..2.0),
-            metabolism: rng.gen_range(0.5..1.5),
-            reproduction_threshold: rng.gen_range(60.0..100.0),
-            vision_range: rng.gen_range(80.0..120.0),
+            speed: rng.random_range(50.0..150.0),
+            size: rng.random_range(1.0..2.0),
+            metabolism: rng.random_range(0.5..1.5),
+            reproduction_threshold: rng.random_range(60.0..100.0),
+            vision_range: rng.random_range(80.0..120.0),
         }
     }
 
     pub fn random_predator() -> Self {
         let mut rng = rand::rng();
         Self {
-            speed: rng.gen_range(80.0..180.0),
-            size: rng.gen_range(1.5..3.0),
-            metabolism: rng.gen_range(1.0..2.0),
-            reproduction_threshold: rng.gen_range(80.0..140.0),
-            vision_range: rng.gen_range(100.0..180.0),
+            speed: rng.random_range(80.0..180.0),
+            size: rng.random_range(1.5..3.0),
+            metabolism: rng.random_range(1.0..2.0),
+            reproduction_threshold: rng.random_range(80.0..140.0),
+            vision_range: rng.random_range(100.0..180.0),
         }
     }
 }

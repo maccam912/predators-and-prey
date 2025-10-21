@@ -40,15 +40,15 @@ pub fn plant_respawn_system(
         let spawn_chance = config.plant_respawn_rate * sunlight.intensity * time.delta_secs();
 
         let mut rng = rand::rng();
-        if rng.gen_bool(spawn_chance as f64) {
+        if rng.random_bool(spawn_chance as f64) {
             // Spawn a new plant at a random location
-            let x = rng.gen_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
-            let y = rng.gen_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+            let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+            let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
             commands.spawn((
                 Plant,
                 Genome::random_plant(),
-                Energy(rng.gen_range(20.0..40.0)),
+                Energy(rng.random_range(20.0..40.0)),
                 Age(0.0),
                 Transform::from_xyz(x, y, 0.0),
                 Sprite {
@@ -75,17 +75,17 @@ pub fn immigration_system(
     if prey_count < 5 {
         // 2% chance per second of immigration event
         let immigration_chance = 0.02 * time.delta_secs();
-        if rng.gen_bool(immigration_chance as f64) {
+        if rng.random_bool(immigration_chance as f64) {
             // Spawn 1-2 immigrant prey
-            let immigrant_count = rng.gen_range(1..=2);
+            let immigrant_count = rng.random_range(1..=2);
             for _ in 0..immigrant_count {
-                let x = rng.gen_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
-                let y = rng.gen_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+                let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+                let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
                 commands.spawn((
                     Prey,
                     Genome::random_prey(),
-                    Energy(rng.gen_range(40.0..80.0)),
+                    Energy(rng.random_range(40.0..80.0)),
                     Age(0.0),
                     Velocity(Vec2::ZERO),
                     Stamina::default(),
@@ -105,17 +105,17 @@ pub fn immigration_system(
     if predator_count < 5 {
         // 2% chance per second of immigration event
         let immigration_chance = 0.02 * time.delta_secs();
-        if rng.gen_bool(immigration_chance as f64) {
+        if rng.random_bool(immigration_chance as f64) {
             // Spawn 1-2 immigrant predators
-            let immigrant_count = rng.gen_range(1..=2);
+            let immigrant_count = rng.random_range(1..=2);
             for _ in 0..immigrant_count {
-                let x = rng.gen_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
-                let y = rng.gen_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+                let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+                let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
                 commands.spawn((
                     Predator,
                     Genome::random_predator(),
-                    Energy(rng.gen_range(60.0..100.0)),
+                    Energy(rng.random_range(60.0..100.0)),
                     Age(0.0),
                     Velocity(Vec2::ZERO),
                     HuntTarget(None),
