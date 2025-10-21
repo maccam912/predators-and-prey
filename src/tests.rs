@@ -169,20 +169,20 @@ mod tests {
             stats.plants, stats.prey, stats.predators, stats.scavengers
         );
 
-        // All species should still be alive after 30 seconds
+        // All species should still be alive after 30 seconds (scaled 4× for larger world)
         assert!(
-            stats.plants > 10,
+            stats.plants > 40,
             "Too few plants survived ({})",
             stats.plants
         );
-        assert!(stats.prey > 5, "Too few prey survived ({})", stats.prey);
+        assert!(stats.prey > 20, "Too few prey survived ({})", stats.prey);
         assert!(
-            stats.predators > 2,
+            stats.predators > 8,
             "Too few predators survived ({})",
             stats.predators
         );
         assert!(
-            stats.scavengers > 2,
+            stats.scavengers > 8,
             "Too few scavengers survived ({})",
             stats.scavengers
         );
@@ -203,24 +203,24 @@ mod tests {
             stats.plants, stats.prey, stats.predators, stats.scavengers
         );
 
-        // Populations shouldn't explode
+        // Populations shouldn't explode (limits scaled 4× for larger world)
         assert!(
-            stats.plants < 500,
+            stats.plants < 2000,
             "Plant population exploded ({})",
             stats.plants
         );
         assert!(
-            stats.prey < 200,
+            stats.prey < 800,
             "Prey population exploded ({})",
             stats.prey
         );
         assert!(
-            stats.predators < 50,
+            stats.predators < 200,
             "Predator population exploded ({})",
             stats.predators
         );
         assert!(
-            stats.scavengers < 50,
+            stats.scavengers < 200,
             "Scavenger population exploded ({})",
             stats.scavengers
         );
@@ -245,13 +245,14 @@ mod tests {
         println!("Total energy after 30s: {:.2}", total_energy);
 
         // System should have reasonable energy (not zero, not infinite)
+        // Scaled 4× for larger world
         assert!(
-            total_energy > 500.0,
+            total_energy > 2000.0,
             "System energy too low ({:.2})",
             total_energy
         );
         assert!(
-            total_energy < 50000.0,
+            total_energy < 200000.0,
             "System energy too high ({:.2})",
             total_energy
         );

@@ -20,17 +20,17 @@ pub struct SimulationConfig {
 impl Default for SimulationConfig {
     fn default() -> Self {
         Self {
-            world_size: Vec2::new(1200.0, 800.0),
-            initial_plants: 150,
-            initial_prey: 40,
-            initial_predators: 8,
-            initial_scavengers: 12,
+            world_size: Vec2::new(4800.0, 3200.0),
+            initial_plants: 600,
+            initial_prey: 160,
+            initial_predators: 32,
+            initial_scavengers: 48,
             plant_energy_from_sun: 0.5,
             prey_energy_from_plant: 30.0,
             predator_energy_from_prey: 50.0,
             scavenger_energy_from_corpse: 35.0,
             plant_respawn_rate: 2.0,
-            max_plants: 300,
+            max_plants: 1200,
         }
     }
 }

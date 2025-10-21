@@ -11,7 +11,7 @@ pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
     commands.spawn((
         Camera2d,
         Projection::Orthographic(OrthographicProjection {
-            scale: 1.0,
+            scale: 4.0,
             ..OrthographicProjection::default_2d()
         }),
         CameraController::default(),
