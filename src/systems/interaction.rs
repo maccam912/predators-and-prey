@@ -34,6 +34,7 @@ pub fn eating_system(
     mut predators: EatingPredatorQuery,
     plants: EatingPlantQuery,
     prey_entities: Query<Entity, With<Prey>>,
+    corpses: Query<(Entity, &Transform, &Energy), With<Corpse>>,
     config: Res<SimulationConfig>,
 ) {
     // Prey eating plants
@@ -50,8 +51,11 @@ pub fn eating_system(
         }
     }
 
-    // Predators eating prey
+    // Predators eating prey (living)
     for (predator_transform, mut predator_energy, _genome) in predators.iter_mut() {
+        let mut ate_something = false;
+
+        // First try to eat living prey
         for prey_entity in prey_entities.iter() {
             if let Ok((prey_transform, _, _)) = prey.get(prey_entity) {
                 let distance = predator_transform
@@ -60,6 +64,22 @@ pub fn eating_system(
                 if distance < 20.0 {
                     predator_energy.0 += config.predator_energy_from_prey;
                     commands.entity(prey_entity).despawn();
+                    ate_something = true;
+                    break;
+                }
+            }
+        }
+
+        // If no living prey found, try to scavenge corpses
+        if !ate_something {
+            for (corpse_entity, corpse_transform, corpse_energy) in corpses.iter() {
+                let distance = predator_transform
+                    .translation
+                    .distance(corpse_transform.translation);
+                if distance < 20.0 && corpse_energy.0 > 10.0 {
+                    // Get less energy from corpses than fresh prey
+                    predator_energy.0 += config.predator_energy_from_prey * 0.7;
+                    commands.entity(corpse_entity).despawn();
                     break;
                 }
             }

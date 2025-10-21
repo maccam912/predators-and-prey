@@ -142,9 +142,63 @@ pub fn reproduction_system(
     }
 }
 
-pub fn death_system(mut commands: Commands, organisms: DeathSystemQuery) {
+pub fn death_system(
+    mut commands: Commands,
+    organisms: DeathSystemQuery,
+    prey_query: Query<&Transform, With<Prey>>,
+    predator_query: Query<&Transform, With<Predator>>,
+) {
     for (entity, energy, age) in organisms.iter() {
         if energy.0 <= 0.0 || age.0 > 300.0 {
+            // Convert to corpse instead of despawning immediately
+            // Corpses provide food and decay over time
+            let corpse_decay_time = 30.0; // 30 seconds before corpse despawns
+
+            // Change sprite color to indicate death
+            if prey_query.get(entity).is_ok() {
+                commands
+                    .entity(entity)
+                    .remove::<Prey>()
+                    .remove::<Velocity>()
+                    .remove::<Stamina>()
+                    .insert(Corpse::new(corpse_decay_time))
+                    .insert(Sprite {
+                        color: Color::srgb(0.5, 0.5, 0.5), // Gray for corpse
+                        custom_size: Some(Vec2::splat(12.0)),
+                        ..default()
+                    });
+            } else if predator_query.get(entity).is_ok() {
+                commands
+                    .entity(entity)
+                    .remove::<Predator>()
+                    .remove::<Velocity>()
+                    .remove::<HuntTarget>()
+                    .insert(Corpse::new(corpse_decay_time))
+                    .insert(Sprite {
+                        color: Color::srgb(0.6, 0.3, 0.3), // Dark red for predator corpse
+                        custom_size: Some(Vec2::splat(16.0)),
+                        ..default()
+                    });
+            }
+        }
+    }
+}
+
+pub fn corpse_decay_system(
+    mut commands: Commands,
+    mut corpses: Query<(Entity, &mut Corpse, &mut Sprite)>,
+    time: Res<Time>,
+) {
+    for (entity, mut corpse, mut sprite) in corpses.iter_mut() {
+        corpse.decay_timer -= time.delta_secs();
+
+        // Gradually fade out the corpse as it decays
+        let decay_progress = corpse.decay_timer / corpse.max_decay_time;
+        let alpha = decay_progress.max(0.2); // Keep minimum alpha of 0.2
+        sprite.color = sprite.color.with_alpha(alpha);
+
+        // Despawn when fully decayed
+        if corpse.decay_timer <= 0.0 {
             commands.entity(entity).despawn();
         }
     }

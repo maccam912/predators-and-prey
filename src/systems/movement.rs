@@ -5,6 +5,30 @@ use crate::components::*;
 use crate::resources::*;
 use crate::utils::*;
 
+// ===== HELPER FUNCTIONS =====
+
+/// Calculate speed multiplier based on age
+/// - Age 0-240: Normal speed (1.0)
+/// - Age 240-270: Gradual slowdown (1.0 -> 0.2)
+/// - Age 270-300: Very slow (0.2 -> 0.0)
+fn age_speed_multiplier(age: f32) -> f32 {
+    const SLOWDOWN_START: f32 = 240.0;
+    const VERY_SLOW_START: f32 = 270.0;
+    const MAX_AGE: f32 = 300.0;
+
+    if age < SLOWDOWN_START {
+        1.0
+    } else if age < VERY_SLOW_START {
+        // Linear interpolation from 1.0 to 0.2
+        1.0 - ((age - SLOWDOWN_START) / (VERY_SLOW_START - SLOWDOWN_START)) * 0.8
+    } else if age < MAX_AGE {
+        // Linear interpolation from 0.2 to 0.0
+        0.2 - ((age - VERY_SLOW_START) / (MAX_AGE - VERY_SLOW_START)) * 0.2
+    } else {
+        0.0
+    }
+}
+
 // ===== QUERY TYPE ALIASES =====
 
 type PreyMovementQuery<'w, 's> = Query<
@@ -17,8 +41,9 @@ type PreyMovementQuery<'w, 's> = Query<
         &'static mut Stamina,
         &'static Genome,
         &'static Energy,
+        &'static Age,
     ),
-    With<Prey>,
+    (With<Prey>, Without<Corpse>),
 >;
 
 type PredatorHuntingQuery<'w, 's> = Query<
@@ -30,8 +55,9 @@ type PredatorHuntingQuery<'w, 's> = Query<
         &'static mut Velocity,
         &'static mut HuntTarget,
         &'static Genome,
+        &'static Age,
     ),
-    With<Predator>,
+    (With<Predator>, Without<Corpse>),
 >;
 
 type PreyTargetQuery<'w, 's> =
@@ -51,10 +77,10 @@ pub fn prey_movement_system(
     // Collect all prey data for flocking calculations
     let prey_data: Vec<(Entity, Vec2, Vec2)> = prey
         .iter()
-        .map(|(e, t, v, _, _, _)| (e, t.translation.xy(), v.0))
+        .map(|(e, t, v, _, _, _, _)| (e, t.translation.xy(), v.0))
         .collect();
 
-    for (entity, mut transform, mut velocity, mut stamina, genome, energy) in prey.iter_mut() {
+    for (entity, mut transform, mut velocity, mut stamina, genome, energy, age) in prey.iter_mut() {
         let mut desired_direction = Vec2::ZERO;
         let mut is_fleeing = false;
         let mut threat_level: f32 = 0.0;
@@ -149,7 +175,9 @@ pub fn prey_movement_system(
             desired_direction = Vec2::new(rng.random_range(-1.0..1.0), rng.random_range(-1.0..1.0));
         }
 
-        let target_speed = genome.speed * speed_multiplier;
+        // Apply age-based speed reduction
+        let age_multiplier = age_speed_multiplier(age.0);
+        let target_speed = genome.speed * speed_multiplier * age_multiplier;
         velocity.0 = velocity
             .0
             .lerp(desired_direction.normalize() * target_speed, 0.1);
@@ -176,7 +204,7 @@ pub fn predator_hunting_system(
     // Collect predator data for separation calculations
     let predator_data: Vec<(Entity, Vec2, Option<Entity>)> = predators
         .iter()
-        .map(|(e, t, _, ht, _)| (e, t.translation.xy(), ht.0))
+        .map(|(e, t, _, ht, _, _)| (e, t.translation.xy(), ht.0))
         .collect();
 
     // Count hunters per prey
@@ -189,7 +217,7 @@ pub fn predator_hunting_system(
     }
 
     // Update predators
-    for (_predator_entity, mut transform, mut velocity, mut hunt_target, genome) in
+    for (_predator_entity, mut transform, mut velocity, mut hunt_target, genome, age) in
         predators.iter_mut()
     {
         // Validate target
@@ -260,9 +288,12 @@ pub fn predator_hunting_system(
             desired_direction = Vec2::new(rng.random_range(-1.0..1.0), rng.random_range(-1.0..1.0));
         }
 
+        // Apply age-based speed reduction
+        let age_multiplier = age_speed_multiplier(age.0);
+        let target_speed = genome.speed * age_multiplier;
         velocity.0 = velocity
             .0
-            .lerp(desired_direction.normalize() * genome.speed, 0.1);
+            .lerp(desired_direction.normalize() * target_speed, 0.1);
         transform.translation += velocity.0.extend(0.0) * time.delta_secs();
 
         // Wrap around world
