@@ -5,28 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Predators and Prey - Ecology Simulator</title>
     <style>
-        body {
+        html, body {
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         #game-container {
-            width: 100%;
-            max-width: 100%;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            position: relative;
         }
 
         canvas {
             background-color: #000;
             display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
         }
 
         #loading {
@@ -37,6 +41,7 @@
             color: #fff;
             font-size: 24px;
             text-align: center;
+            z-index: 1000;
         }
 
         #loading.hidden {
@@ -59,15 +64,27 @@
         }
 
         #info {
-            color: #ccc;
-            padding: 20px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
             text-align: center;
-            max-width: 800px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            pointer-events: none;
+            z-index: 10;
         }
 
         #info h1 {
             color: #fff;
-            margin-top: 0;
+            margin: 0 0 5px 0;
+            font-size: 1.5em;
+        }
+
+        #info p {
+            margin: 3px 0;
+            font-size: 0.9em;
         }
     </style>
 </head>
