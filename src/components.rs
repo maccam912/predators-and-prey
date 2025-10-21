@@ -84,3 +84,18 @@ impl Default for Stamina {
         }
     }
 }
+
+#[derive(Component)]
+pub struct Corpse {
+    pub decay_timer: f32, // Time remaining before corpse despawns
+    pub max_decay_time: f32,
+}
+
+impl Corpse {
+    pub fn new(max_decay_time: f32) -> Self {
+        Self {
+            decay_timer: max_decay_time,
+            max_decay_time,
+        }
+    }
+}

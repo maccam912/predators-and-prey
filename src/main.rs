@@ -49,6 +49,7 @@ fn main() {
                 age_system,
                 reproduction_system,
                 death_system,
+                corpse_decay_system,
                 update_population_stats,
                 record_history_system,
                 console_output_system,
