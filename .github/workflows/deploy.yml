@@ -28,32 +28,10 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.6
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
+      - name: Cache Rust dependencies and build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-registry-
-
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-index-
-
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-build-target-
+          cache-on-failure: true
 
       - name: Cache wasm-bindgen-cli
         id: cache-wasm-bindgen
@@ -67,9 +45,6 @@ jobs:
         run: cargo install wasm-bindgen-cli --version 0.2.104
 
       - name: Build for WASM
-        env:
-          RUSTC_WRAPPER: sccache
-          SCCACHE_GHA_ENABLED: "true"
         run: cargo build --release --target wasm32-unknown-unknown
 
       - name: Generate WASM bindings
