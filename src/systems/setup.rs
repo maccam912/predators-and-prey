@@ -3,11 +3,20 @@ use rand::Rng;
 
 use crate::components::*;
 use crate::resources::*;
+use crate::systems::input::CameraController;
 
 // ===== SETUP SYSTEM =====
 
 pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
-    commands.spawn(Camera2d);
+    commands.spawn((
+        Camera2d,
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        OrthographicProjection {
+            scale: 1.0,
+            ..OrthographicProjection::default_2d()
+        },
+        CameraController::default(),
+    ));
 
     let mut rng = rand::rng();
 
