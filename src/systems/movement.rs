@@ -64,6 +64,31 @@ type PredatorHuntingQuery<'w, 's> = Query<
 type PreyTargetQuery<'w, 's> =
     Query<'w, 's, (Entity, &'static Transform), (With<Prey>, Without<Predator>)>;
 
+type ScavengerMovementQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static mut Transform,
+        &'static mut Velocity,
+        &'static mut ExplorationWaypoint,
+        &'static Genome,
+        &'static Age,
+    ),
+    (With<Scavenger>, Without<Corpse>),
+>;
+
+type CorpseTargetQuery<'w, 's> = Query<
+    'w,
+    's,
+    (Entity, &'static Transform, &'static Energy),
+    (
+        With<Corpse>,
+        Without<Scavenger>,
+        Or<(With<Prey>, With<Predator>)>,
+    ),
+>;
+
 // ===== MOVEMENT SYSTEMS =====
 
 pub fn prey_movement_system(
@@ -326,6 +351,110 @@ pub fn predator_hunting_system(
         let separation_radius = 50.0;
         let mut separation_force = Vec2::ZERO;
         for (_, other_pos, _) in &predator_data {
+            let to_other =
+                crate::utils::wrapped_direction(current_pos, *other_pos, &config.world_size);
+            let distance = to_other.length();
+            if distance > 0.1 && distance < separation_radius {
+                separation_force -=
+                    to_other.normalize() * (separation_radius - distance) / separation_radius;
+            }
+        }
+        desired_direction += separation_force * 0.3;
+
+        // Apply age-based speed reduction
+        let age_multiplier = age_speed_multiplier(age.0);
+        let target_speed = genome.speed * age_multiplier;
+        velocity.0 = velocity
+            .0
+            .lerp(desired_direction.normalize() * target_speed, 0.1);
+        transform.translation += velocity.0.extend(0.0) * time.delta_secs();
+
+        // Wrap around world
+        wrap_position(&mut transform.translation, &config.world_size);
+    }
+}
+
+pub fn scavenger_movement_system(
+    mut scavengers: ScavengerMovementQuery,
+    corpses: CorpseTargetQuery,
+    config: Res<SimulationConfig>,
+    time: Res<Time>,
+) {
+    let mut rng = rand::rng();
+
+    // Collect corpse positions
+    let corpse_positions: std::collections::HashMap<Entity, (Vec2, f32)> = corpses
+        .iter()
+        .map(|(e, t, energy)| (e, (t.translation.xy(), energy.0)))
+        .collect();
+
+    // Collect scavenger data for separation calculations
+    let scavenger_data: Vec<(Entity, Vec2)> = scavengers
+        .iter()
+        .map(|(e, t, _, _, _, _)| (e, t.translation.xy()))
+        .collect();
+
+    for (_scavenger_entity, mut transform, mut velocity, mut waypoint, genome, age) in
+        scavengers.iter_mut()
+    {
+        let current_pos = transform.translation.xy();
+
+        // Look for nearby corpses
+        let nearest_corpse = corpse_positions
+            .iter()
+            .filter(|(_, (_, energy))| *energy > 10.0) // Only consider corpses with enough energy
+            .min_by_key(|(_, (pos, _))| {
+                crate::utils::wrapped_distance(current_pos, *pos, &config.world_size) as i32
+            });
+
+        let mut desired_direction = if let Some((_, (corpse_pos, _))) = nearest_corpse {
+            let distance =
+                crate::utils::wrapped_distance(current_pos, *corpse_pos, &config.world_size);
+            if distance < genome.vision_range {
+                // Move toward corpse
+                crate::utils::wrapped_direction(current_pos, *corpse_pos, &config.world_size)
+                    .normalize()
+            } else {
+                // No corpse in vision range, explore
+                Vec2::ZERO
+            }
+        } else {
+            Vec2::ZERO
+        };
+
+        // If no corpse in sight, use exploration behavior
+        if desired_direction.length() < 0.1 {
+            let to_waypoint =
+                crate::utils::wrapped_direction(current_pos, waypoint.target, &config.world_size);
+            let distance_to_waypoint = to_waypoint.length();
+
+            if distance_to_waypoint < waypoint.reached_threshold {
+                // Pick a new waypoint
+                let angle = rng.random_range(0.0..std::f32::consts::TAU);
+                let distance =
+                    rng.random_range(genome.vision_range * 0.8..genome.vision_range * 1.5);
+                waypoint.target = current_pos + Vec2::new(angle.cos(), angle.sin()) * distance;
+
+                // Wrap waypoint to world bounds
+                if waypoint.target.x > config.world_size.x / 2.0 {
+                    waypoint.target.x -= config.world_size.x;
+                } else if waypoint.target.x < -config.world_size.x / 2.0 {
+                    waypoint.target.x += config.world_size.x;
+                }
+                if waypoint.target.y > config.world_size.y / 2.0 {
+                    waypoint.target.y -= config.world_size.y;
+                } else if waypoint.target.y < -config.world_size.y / 2.0 {
+                    waypoint.target.y += config.world_size.y;
+                }
+            }
+
+            desired_direction = to_waypoint.normalize();
+        }
+
+        // Add separation from other scavengers
+        let separation_radius = 40.0;
+        let mut separation_force = Vec2::ZERO;
+        for (_, other_pos) in &scavenger_data {
             let to_other =
                 crate::utils::wrapped_direction(current_pos, *other_pos, &config.world_size);
             let distance = to_other.length();

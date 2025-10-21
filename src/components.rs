@@ -45,6 +45,17 @@ impl Genome {
             vision_range: rng.random_range(100.0..180.0),
         }
     }
+
+    pub fn random_scavenger() -> Self {
+        let mut rng = rand::rng();
+        Self {
+            speed: rng.random_range(60.0..120.0), // Slower than predators
+            size: rng.random_range(1.2..2.5),
+            metabolism: rng.random_range(0.6..1.2), // Lower metabolism
+            reproduction_threshold: rng.random_range(70.0..110.0),
+            vision_range: rng.random_range(120.0..200.0), // Good vision to spot corpses
+        }
+    }
 }
 
 #[derive(Component)]
@@ -55,6 +66,9 @@ pub struct Prey;
 
 #[derive(Component)]
 pub struct Predator;
+
+#[derive(Component)]
+pub struct Scavenger;
 
 #[derive(Component)]
 pub struct Energy(pub f32);

@@ -26,15 +26,41 @@ type EatingPlantQuery<'w, 's> = Query<
     (With<Plant>, Without<Prey>, Without<Predator>),
 >;
 
+type ScavengerEatingQuery<'w, 's> = Query<
+    'w,
+    's,
+    (&'static Transform, &'static mut Energy),
+    (
+        With<Scavenger>,
+        Without<Corpse>,
+        Without<Prey>,
+        Without<Predator>,
+    ),
+>;
+
+type CorpseQuery<'w, 's> = Query<
+    'w,
+    's,
+    (Entity, &'static Transform, &'static Energy),
+    (
+        With<Corpse>,
+        Without<Predator>,
+        Without<Prey>,
+        Without<Scavenger>,
+    ),
+>;
+
 // ===== INTERACTION SYSTEMS =====
 
+#[allow(clippy::too_many_arguments)]
 pub fn eating_system(
     mut commands: Commands,
     mut prey: EatingPreyQuery,
     mut predators: EatingPredatorQuery,
+    mut scavengers: ScavengerEatingQuery,
     plants: EatingPlantQuery,
     prey_entities: Query<Entity, With<Prey>>,
-    corpses: Query<(Entity, &Transform, &Energy), (With<Corpse>, Without<Predator>, Without<Prey>)>,
+    corpses: CorpseQuery,
     config: Res<SimulationConfig>,
 ) {
     // Prey eating plants
@@ -82,6 +108,23 @@ pub fn eating_system(
                     commands.entity(corpse_entity).despawn();
                     break;
                 }
+            }
+        }
+    }
+
+    // Scavengers eating corpses (corpses query excludes scavenger corpses)
+    for (scavenger_transform, mut scavenger_energy) in scavengers.iter_mut() {
+        for (corpse_entity, corpse_transform, corpse_energy) in corpses.iter() {
+            let to_corpse = crate::utils::wrapped_direction(
+                scavenger_transform.translation.xy(),
+                corpse_transform.translation.xy(),
+                &config.world_size,
+            );
+            let distance = to_corpse.length();
+            if distance < 15.0 && corpse_energy.0 > 10.0 {
+                scavenger_energy.0 += config.scavenger_energy_from_corpse;
+                commands.entity(corpse_entity).despawn();
+                break;
             }
         }
     }

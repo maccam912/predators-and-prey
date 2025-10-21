@@ -92,6 +92,38 @@ pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
         ));
     }
 
+    // Spawn scavengers
+    for _ in 0..config.initial_scavengers {
+        let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+        let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+
+        // Generate initial exploration waypoint
+        let waypoint_angle = rng.random_range(0.0..std::f32::consts::TAU);
+        let waypoint_distance = rng.random_range(100.0..200.0);
+        let waypoint_target = Vec2::new(
+            x + waypoint_angle.cos() * waypoint_distance,
+            y + waypoint_angle.sin() * waypoint_distance,
+        );
+
+        commands.spawn((
+            Scavenger,
+            Genome::random_scavenger(),
+            Energy(rng.random_range(50.0..80.0)),
+            Age(0.0),
+            Velocity(Vec2::ZERO),
+            ExplorationWaypoint {
+                target: waypoint_target,
+                reached_threshold: 30.0,
+            },
+            Transform::from_xyz(x, y, 1.5),
+            Sprite {
+                color: Color::srgb(0.7, 0.5, 0.2), // Brown color for scavengers
+                custom_size: Some(Vec2::splat(14.0)),
+                ..default()
+            },
+        ));
+    }
+
     // Spawn UI text
     commands.spawn((
         Text::new("Population Stats"),

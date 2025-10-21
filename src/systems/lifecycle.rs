@@ -9,18 +9,18 @@ type EnergyConsumptionQuery<'w, 's> = Query<
     'w,
     's,
     (&'static mut Energy, &'static Genome, &'static Velocity),
-    Or<(With<Plant>, With<Prey>, With<Predator>)>,
+    Or<(With<Plant>, With<Prey>, With<Predator>, With<Scavenger>)>,
 >;
 
 type DeathSystemQuery<'w, 's> = Query<
     'w,
     's,
     (Entity, &'static Energy, &'static Age),
-    Or<(With<Plant>, With<Prey>, With<Predator>)>,
+    Or<(With<Plant>, With<Prey>, With<Predator>, With<Scavenger>)>,
 >;
 
 type AgeSystemQuery<'w, 's> =
-    Query<'w, 's, &'static mut Age, Or<(With<Plant>, With<Prey>, With<Predator>)>>;
+    Query<'w, 's, &'static mut Age, Or<(With<Plant>, With<Prey>, With<Predator>, With<Scavenger>)>>;
 
 // ===== LIFECYCLE SYSTEMS =====
 
@@ -43,12 +43,14 @@ pub fn reproduction_system(
     plants: Query<(Entity, &Transform, &Energy, &Genome), With<Plant>>,
     prey: Query<(Entity, &Transform, &Energy, &Genome), With<Prey>>,
     predators: Query<(Entity, &Transform, &Energy, &Genome), With<Predator>>,
+    scavengers: Query<(Entity, &Transform, &Energy, &Genome), With<Scavenger>>,
 ) {
     let mut rng = rand::rng();
 
     // Count populations for density-dependent reproduction
     let prey_count = prey.iter().count();
     let predator_count = predators.iter().count();
+    let scavenger_count = scavengers.iter().count();
 
     // Plant reproduction
     for (entity, transform, energy, genome) in plants.iter() {
@@ -153,6 +155,51 @@ pub fn reproduction_system(
             }
         }
     }
+
+    // Scavenger reproduction with density-dependent rates
+    // Base rate: 0.4%, doubled to 0.8% when population < 10
+    let scavenger_reproduction_rate = if scavenger_count < 10 { 0.008 } else { 0.004 };
+
+    for (entity, transform, energy, genome) in scavengers.iter() {
+        if energy.0 > genome.reproduction_threshold && rng.random_bool(scavenger_reproduction_rate)
+        {
+            let offset = Vec2::new(rng.random_range(-20.0..20.0), rng.random_range(-20.0..20.0));
+            let spawn_pos = Vec2::new(
+                transform.translation.x + offset.x,
+                transform.translation.y + offset.y,
+            );
+
+            // Generate initial exploration waypoint for offspring
+            let waypoint_angle = rng.random_range(0.0..std::f32::consts::TAU);
+            let waypoint_distance = rng.random_range(100.0..200.0);
+            let waypoint_target = Vec2::new(
+                spawn_pos.x + waypoint_angle.cos() * waypoint_distance,
+                spawn_pos.y + waypoint_angle.sin() * waypoint_distance,
+            );
+
+            commands.spawn((
+                Scavenger,
+                genome.clone(),
+                Energy(energy.0 * 0.5),
+                Age(0.0),
+                Velocity(Vec2::ZERO),
+                ExplorationWaypoint {
+                    target: waypoint_target,
+                    reached_threshold: 30.0,
+                },
+                Transform::from_xyz(spawn_pos.x, spawn_pos.y, 1.5),
+                Sprite {
+                    color: Color::srgb(0.7, 0.5, 0.2),
+                    custom_size: Some(Vec2::splat(14.0)),
+                    ..default()
+                },
+            ));
+
+            if let Ok(mut entity_commands) = commands.get_entity(entity) {
+                entity_commands.insert(Energy(energy.0 * 0.5));
+            }
+        }
+    }
 }
 
 pub fn death_system(
@@ -160,6 +207,7 @@ pub fn death_system(
     organisms: DeathSystemQuery,
     prey_query: Query<&Transform, With<Prey>>,
     predator_query: Query<&Transform, With<Predator>>,
+    scavenger_query: Query<&Transform, With<Scavenger>>,
 ) {
     for (entity, energy, age) in organisms.iter() {
         if energy.0 <= 0.0 || age.0 > 300.0 {
@@ -191,6 +239,18 @@ pub fn death_system(
                     .insert(Sprite {
                         color: Color::srgb(0.6, 0.3, 0.3), // Dark red for predator corpse
                         custom_size: Some(Vec2::splat(16.0)),
+                        ..default()
+                    });
+            } else if scavenger_query.get(entity).is_ok() {
+                commands
+                    .entity(entity)
+                    .remove::<Scavenger>()
+                    .remove::<Velocity>()
+                    .remove::<ExplorationWaypoint>()
+                    .insert(Corpse::new(corpse_decay_time))
+                    .insert(Sprite {
+                        color: Color::srgb(0.5, 0.4, 0.2), // Dark brown for scavenger corpse
+                        custom_size: Some(Vec2::splat(14.0)),
                         ..default()
                     });
             }

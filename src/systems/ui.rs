@@ -49,8 +49,8 @@ pub fn console_output_system(
 
         println!("\n========== Simulation Stats ({elapsed:.1}s) ==========");
         println!(
-            "Population: Plants={}, Prey={}, Predators={}",
-            stats.plants, stats.prey, stats.predators
+            "Population: Plants={}, Prey={}, Predators={}, Scavengers={}",
+            stats.plants, stats.prey, stats.predators, stats.scavengers
         );
 
         if let Some(latest) = history.snapshots.last() {
@@ -80,10 +80,11 @@ pub fn ui_system(
         let mut display = format!(
             "=== ECOSYSTEM SIMULATION ===\n\n\
              POPULATION\n\
-             Plants:    {}\n\
-             Prey:      {}\n\
-             Predators: {}\n\n",
-            stats.plants, stats.prey, stats.predators
+             Plants:     {}\n\
+             Prey:       {}\n\
+             Predators:  {}\n\
+             Scavengers: {}\n\n",
+            stats.plants, stats.prey, stats.predators, stats.scavengers
         );
 
         if let Some(latest) = history.snapshots.last() {

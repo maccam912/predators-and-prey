@@ -8,9 +8,11 @@ pub struct SimulationConfig {
     pub initial_plants: usize,
     pub initial_prey: usize,
     pub initial_predators: usize,
+    pub initial_scavengers: usize,
     pub plant_energy_from_sun: f32,
     pub prey_energy_from_plant: f32,
     pub predator_energy_from_prey: f32,
+    pub scavenger_energy_from_corpse: f32,
     pub plant_respawn_rate: f32,
     pub max_plants: usize,
 }
@@ -22,9 +24,11 @@ impl Default for SimulationConfig {
             initial_plants: 150,
             initial_prey: 40,
             initial_predators: 8,
+            initial_scavengers: 12,
             plant_energy_from_sun: 0.5,
             prey_energy_from_plant: 30.0,
             predator_energy_from_prey: 50.0,
+            scavenger_energy_from_corpse: 35.0,
             plant_respawn_rate: 2.0,
             max_plants: 300,
         }
@@ -36,6 +40,7 @@ pub struct PopulationStats {
     pub plants: usize,
     pub prey: usize,
     pub predators: usize,
+    pub scavengers: usize,
 }
 
 #[derive(Resource)]

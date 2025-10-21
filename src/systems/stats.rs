@@ -9,11 +9,13 @@ pub fn update_population_stats(
     plants: Query<(), With<Plant>>,
     prey: Query<(), With<Prey>>,
     predators: Query<(), With<Predator>>,
+    scavengers: Query<(), With<Scavenger>>,
     mut stats: ResMut<PopulationStats>,
 ) {
     stats.plants = plants.iter().count();
     stats.prey = prey.iter().count();
     stats.predators = predators.iter().count();
+    stats.scavengers = scavengers.iter().count();
 }
 
 pub fn record_history_system(

@@ -44,6 +44,7 @@ fn main() {
                 immigration_system,
                 prey_movement_system,
                 predator_hunting_system,
+                scavenger_movement_system,
                 eating_system,
                 energy_consumption_system,
                 age_system,
