@@ -13,13 +13,13 @@ pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
 
     // Spawn plants
     for _ in 0..config.initial_plants {
-        let x = rng.gen_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
-        let y = rng.gen_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+        let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+        let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
         commands.spawn((
             Plant,
             Genome::random_plant(),
-            Energy(rng.gen_range(20.0..50.0)),
+            Energy(rng.random_range(20.0..50.0)),
             Age(0.0),
             Transform::from_xyz(x, y, 0.0),
             Sprite {
@@ -32,13 +32,13 @@ pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
 
     // Spawn prey
     for _ in 0..config.initial_prey {
-        let x = rng.gen_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
-        let y = rng.gen_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+        let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+        let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
         commands.spawn((
             Prey,
             Genome::random_prey(),
-            Energy(rng.gen_range(40.0..80.0)),
+            Energy(rng.random_range(40.0..80.0)),
             Age(0.0),
             Velocity(Vec2::ZERO),
             Stamina::default(),
@@ -53,13 +53,13 @@ pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
 
     // Spawn predators
     for _ in 0..config.initial_predators {
-        let x = rng.gen_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
-        let y = rng.gen_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+        let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+        let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
         commands.spawn((
             Predator,
             Genome::random_predator(),
-            Energy(rng.gen_range(60.0..100.0)),
+            Energy(rng.random_range(60.0..100.0)),
             Age(0.0),
             Velocity(Vec2::ZERO),
             HuntTarget(None),
