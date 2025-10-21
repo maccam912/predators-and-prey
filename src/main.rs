@@ -40,7 +40,6 @@ fn main() {
                 sunlight_cycle_system,
                 plant_growth_system,
                 plant_respawn_system,
-                immigration_system,
                 prey_movement_system,
                 predator_hunting_system,
                 eating_system,

@@ -46,10 +46,6 @@ pub fn reproduction_system(
 ) {
     let mut rng = rand::rng();
 
-    // Count populations for density-dependent reproduction
-    let prey_count = prey.iter().count();
-    let predator_count = predators.iter().count();
-
     // Plant reproduction
     for (entity, transform, energy, genome) in plants.iter() {
         if energy.0 > genome.reproduction_threshold && rng.gen_bool(0.01) {
@@ -77,12 +73,9 @@ pub fn reproduction_system(
         }
     }
 
-    // Prey reproduction with density-dependent rates
-    // Base rate: 0.5%, doubled to 1% when population < 10
-    let prey_reproduction_rate = if prey_count < 10 { 0.01 } else { 0.005 };
-
+    // Prey reproduction
     for (entity, transform, energy, genome) in prey.iter() {
-        if energy.0 > genome.reproduction_threshold && rng.gen_bool(prey_reproduction_rate) {
+        if energy.0 > genome.reproduction_threshold && rng.gen_bool(0.005) {
             let offset = Vec2::new(rng.gen_range(-20.0..20.0), rng.gen_range(-20.0..20.0));
             commands.spawn((
                 Prey,
@@ -109,12 +102,9 @@ pub fn reproduction_system(
         }
     }
 
-    // Predator reproduction with density-dependent rates
-    // Base rate: 0.3%, doubled to 0.6% when population < 10
-    let predator_reproduction_rate = if predator_count < 10 { 0.006 } else { 0.003 };
-
+    // Predator reproduction
     for (entity, transform, energy, genome) in predators.iter() {
-        if energy.0 > genome.reproduction_threshold && rng.gen_bool(predator_reproduction_rate) {
+        if energy.0 > genome.reproduction_threshold && rng.gen_bool(0.003) {
             let offset = Vec2::new(rng.gen_range(-20.0..20.0), rng.gen_range(-20.0..20.0));
             commands.spawn((
                 Predator,
