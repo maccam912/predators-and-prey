@@ -116,6 +116,19 @@ pub fn reproduction_system(
     for (entity, transform, energy, genome) in predators.iter() {
         if energy.0 > genome.reproduction_threshold && rng.random_bool(predator_reproduction_rate) {
             let offset = Vec2::new(rng.random_range(-20.0..20.0), rng.random_range(-20.0..20.0));
+            let spawn_pos = Vec2::new(
+                transform.translation.x + offset.x,
+                transform.translation.y + offset.y,
+            );
+
+            // Generate initial exploration waypoint for offspring
+            let waypoint_angle = rng.random_range(0.0..std::f32::consts::TAU);
+            let waypoint_distance = rng.random_range(100.0..200.0);
+            let waypoint_target = Vec2::new(
+                spawn_pos.x + waypoint_angle.cos() * waypoint_distance,
+                spawn_pos.y + waypoint_angle.sin() * waypoint_distance,
+            );
+
             commands.spawn((
                 Predator,
                 genome.clone(),
@@ -123,11 +136,11 @@ pub fn reproduction_system(
                 Age(0.0),
                 Velocity(Vec2::ZERO),
                 HuntTarget(None),
-                Transform::from_xyz(
-                    transform.translation.x + offset.x,
-                    transform.translation.y + offset.y,
-                    2.0,
-                ),
+                ExplorationWaypoint {
+                    target: waypoint_target,
+                    reached_threshold: 30.0,
+                },
+                Transform::from_xyz(spawn_pos.x, spawn_pos.y, 2.0),
                 Sprite {
                     color: Color::srgb(0.9, 0.2, 0.2),
                     custom_size: Some(Vec2::splat(16.0)),
@@ -173,6 +186,7 @@ pub fn death_system(
                     .remove::<Predator>()
                     .remove::<Velocity>()
                     .remove::<HuntTarget>()
+                    .remove::<ExplorationWaypoint>()
                     .insert(Corpse::new(corpse_decay_time))
                     .insert(Sprite {
                         color: Color::srgb(0.6, 0.3, 0.3), // Dark red for predator corpse

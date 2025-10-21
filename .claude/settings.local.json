@@ -8,7 +8,8 @@
       "Bash(cargo test -- --nocapture)",
       "Bash(cargo fmt --check)",
       "Bash(cargo clippy -- -W clippy::all)",
-      "Bash(cargo fmt)"
+      "Bash(cargo fmt)",
+      "Bash(cargo build:*)"
     ],
     "deny": [],
     "ask": []

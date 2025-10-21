@@ -54,6 +54,7 @@ type PredatorHuntingQuery<'w, 's> = Query<
         &'static mut Transform,
         &'static mut Velocity,
         &'static mut HuntTarget,
+        &'static mut ExplorationWaypoint,
         &'static Genome,
         &'static Age,
     ),
@@ -84,10 +85,15 @@ pub fn prey_movement_system(
         let mut desired_direction = Vec2::ZERO;
         let mut is_fleeing = false;
         let mut threat_level: f32 = 0.0;
+        let current_pos = transform.translation.xy();
 
-        // Flee from predators (highest priority)
+        // Flee from predators (highest priority) using wrapped distances
         for predator_transform in predators.iter() {
-            let to_predator = predator_transform.translation.xy() - transform.translation.xy();
+            let to_predator = crate::utils::wrapped_direction(
+                current_pos,
+                predator_transform.translation.xy(),
+                &config.world_size,
+            );
             let distance = to_predator.length();
             if distance < genome.vision_range * 1.5 {
                 let flee_strength = (genome.vision_range * 1.5 - distance) / genome.vision_range;
@@ -157,14 +163,19 @@ pub fn prey_movement_system(
                 (stamina.current + stamina.regen_rate * time.delta_secs()).min(stamina.max);
         }
 
-        // Move towards nearest plant if hungry and not fleeing strongly
+        // Move towards nearest plant if hungry and not fleeing strongly using wrapped distances
         if desired_direction.length() < 0.5
             && threat_level < 0.3
-            && let Some(nearest_plant) = plants
-                .iter()
-                .min_by_key(|p| (p.translation.xy() - transform.translation.xy()).length() as i32)
+            && let Some(nearest_plant) = plants.iter().min_by_key(|p| {
+                crate::utils::wrapped_distance(current_pos, p.translation.xy(), &config.world_size)
+                    as i32
+            })
         {
-            let to_plant = nearest_plant.translation.xy() - transform.translation.xy();
+            let to_plant = crate::utils::wrapped_direction(
+                current_pos,
+                nearest_plant.translation.xy(),
+                &config.world_size,
+            );
             if to_plant.length() < genome.vision_range {
                 desired_direction += to_plant.normalize() * 0.5;
             }
@@ -204,7 +215,7 @@ pub fn predator_hunting_system(
     // Collect predator data for separation calculations
     let predator_data: Vec<(Entity, Vec2, Option<Entity>)> = predators
         .iter()
-        .map(|(e, t, _, ht, _, _)| (e, t.translation.xy(), ht.0))
+        .map(|(e, t, _, ht, _, _, _)| (e, t.translation.xy(), ht.0))
         .collect();
 
     // Count hunters per prey
@@ -217,8 +228,15 @@ pub fn predator_hunting_system(
     }
 
     // Update predators
-    for (_predator_entity, mut transform, mut velocity, mut hunt_target, genome, age) in
-        predators.iter_mut()
+    for (
+        _predator_entity,
+        mut transform,
+        mut velocity,
+        mut hunt_target,
+        mut waypoint,
+        genome,
+        age,
+    ) in predators.iter_mut()
     {
         // Validate target
         if let Some(target) = hunt_target.0
@@ -227,13 +245,14 @@ pub fn predator_hunting_system(
             hunt_target.0 = None;
         }
 
-        let mut desired_direction = Vec2::ZERO;
+        let current_pos = transform.translation.xy();
 
         // Check if current target is valid and not overcrowded
         let mut need_new_target = false;
         if let Some(target) = hunt_target.0 {
             if let Some(target_pos) = prey_positions.get(&target) {
-                let distance = transform.translation.xy().distance(*target_pos);
+                let distance =
+                    crate::utils::wrapped_distance(current_pos, *target_pos, &config.world_size);
                 let hunter_count = hunters_per_prey.get(&target).copied().unwrap_or(0);
 
                 // Switch if too many hunters (max 3) or target too far
@@ -247,34 +266,68 @@ pub fn predator_hunting_system(
             need_new_target = true;
         }
 
-        // Find new target if needed
+        // Find new target if needed using wrapped distances
         if need_new_target {
             hunt_target.0 = prey_positions
                 .iter()
                 .filter(|(_, pos)| {
-                    let distance = transform.translation.xy().distance(**pos);
+                    let distance =
+                        crate::utils::wrapped_distance(current_pos, **pos, &config.world_size);
                     distance < genome.vision_range
                 })
-                .min_by_key(|(prey_entity, _)| {
+                .min_by_key(|(prey_entity, pos)| {
                     let hunter_count = hunters_per_prey.get(prey_entity).copied().unwrap_or(0);
-                    hunter_count * 1000 // Prioritize less hunted prey
+                    let distance =
+                        crate::utils::wrapped_distance(current_pos, **pos, &config.world_size);
+                    (hunter_count * 1000) + distance as usize
                 })
                 .map(|(e, _)| *e);
         }
 
-        // Move toward target
-        if let Some(target) = hunt_target.0
+        // Move toward target using wrapped direction
+        let mut desired_direction = if let Some(target) = hunt_target.0
             && let Some(target_pos) = prey_positions.get(&target)
         {
-            let to_prey = *target_pos - transform.translation.xy();
-            desired_direction = to_prey.normalize();
-        }
+            let to_prey =
+                crate::utils::wrapped_direction(current_pos, *target_pos, &config.world_size);
+            to_prey.normalize()
+        } else {
+            // Purposeful exploration when no target
+            // Check if we've reached the current waypoint
+            let to_waypoint =
+                crate::utils::wrapped_direction(current_pos, waypoint.target, &config.world_size);
+            let distance_to_waypoint = to_waypoint.length();
 
-        // Add separation from other predators (avoid crowding)
+            if distance_to_waypoint < waypoint.reached_threshold {
+                // Pick a new waypoint - prefer areas far from current position
+                let angle = rng.random_range(0.0..std::f32::consts::TAU);
+                let distance =
+                    rng.random_range(genome.vision_range * 0.8..genome.vision_range * 1.5);
+                waypoint.target = current_pos + Vec2::new(angle.cos(), angle.sin()) * distance;
+
+                // Wrap waypoint to world bounds
+                if waypoint.target.x > config.world_size.x / 2.0 {
+                    waypoint.target.x -= config.world_size.x;
+                } else if waypoint.target.x < -config.world_size.x / 2.0 {
+                    waypoint.target.x += config.world_size.x;
+                }
+                if waypoint.target.y > config.world_size.y / 2.0 {
+                    waypoint.target.y -= config.world_size.y;
+                } else if waypoint.target.y < -config.world_size.y / 2.0 {
+                    waypoint.target.y += config.world_size.y;
+                }
+            }
+
+            // Move toward exploration waypoint
+            to_waypoint.normalize()
+        };
+
+        // Add separation from other predators (avoid crowding) using wrapped distances
         let separation_radius = 50.0;
         let mut separation_force = Vec2::ZERO;
         for (_, other_pos, _) in &predator_data {
-            let to_other = *other_pos - transform.translation.xy();
+            let to_other =
+                crate::utils::wrapped_direction(current_pos, *other_pos, &config.world_size);
             let distance = to_other.length();
             if distance > 0.1 && distance < separation_radius {
                 separation_force -=
@@ -282,11 +335,6 @@ pub fn predator_hunting_system(
             }
         }
         desired_direction += separation_force * 0.3;
-
-        // Random wander if no target
-        if desired_direction.length() < 0.1 {
-            desired_direction = Vec2::new(rng.random_range(-1.0..1.0), rng.random_range(-1.0..1.0));
-        }
 
         // Apply age-based speed reduction
         let age_multiplier = age_speed_multiplier(age.0);

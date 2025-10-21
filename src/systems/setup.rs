@@ -64,6 +64,14 @@ pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
         let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
         let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
+        // Generate initial exploration waypoint
+        let waypoint_angle = rng.random_range(0.0..std::f32::consts::TAU);
+        let waypoint_distance = rng.random_range(100.0..200.0);
+        let waypoint_target = Vec2::new(
+            x + waypoint_angle.cos() * waypoint_distance,
+            y + waypoint_angle.sin() * waypoint_distance,
+        );
+
         commands.spawn((
             Predator,
             Genome::random_predator(),
@@ -71,6 +79,10 @@ pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
             Age(0.0),
             Velocity(Vec2::ZERO),
             HuntTarget(None),
+            ExplorationWaypoint {
+                target: waypoint_target,
+                reached_threshold: 30.0,
+            },
             Transform::from_xyz(x, y, 2.0),
             Sprite {
                 color: Color::srgb(0.9, 0.2, 0.2),

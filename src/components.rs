@@ -99,3 +99,9 @@ impl Corpse {
         }
     }
 }
+
+#[derive(Component)]
+pub struct ExplorationWaypoint {
+    pub target: Vec2,
+    pub reached_threshold: f32,
+}
