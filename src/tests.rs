@@ -44,7 +44,7 @@ mod tests {
     }
 
     fn setup_test(mut commands: Commands, config: Res<SimulationConfig>) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Spawn plants
         for _ in 0..config.initial_plants {

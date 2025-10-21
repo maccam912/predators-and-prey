@@ -44,7 +44,7 @@ pub fn reproduction_system(
     prey: Query<(Entity, &Transform, &Energy, &Genome), With<Prey>>,
     predators: Query<(Entity, &Transform, &Energy, &Genome), With<Predator>>,
 ) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Plant reproduction
     for (entity, transform, energy, genome) in plants.iter() {

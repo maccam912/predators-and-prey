@@ -46,7 +46,7 @@ pub fn prey_movement_system(
     config: Res<SimulationConfig>,
     time: Res<Time>,
 ) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Collect all prey data for flocking calculations
     let prey_data: Vec<(Entity, Vec2, Vec2)> = prey
@@ -166,7 +166,7 @@ pub fn predator_hunting_system(
     config: Res<SimulationConfig>,
     time: Res<Time>,
 ) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Collect prey positions and valid prey set
     let prey_entities: std::collections::HashSet<Entity> = prey.iter().map(|(e, _)| e).collect();
