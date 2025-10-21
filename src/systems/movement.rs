@@ -146,7 +146,7 @@ pub fn prey_movement_system(
 
         // Random wander if no strong stimulus
         if desired_direction.length() < 0.1 {
-            desired_direction = Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0));
+            desired_direction = Vec2::new(rng.random_range(-1.0..1.0), rng.random_range(-1.0..1.0));
         }
 
         let target_speed = genome.speed * speed_multiplier;
@@ -257,7 +257,7 @@ pub fn predator_hunting_system(
 
         // Random wander if no target
         if desired_direction.length() < 0.1 {
-            desired_direction = Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0));
+            desired_direction = Vec2::new(rng.random_range(-1.0..1.0), rng.random_range(-1.0..1.0));
         }
 
         velocity.0 = velocity
