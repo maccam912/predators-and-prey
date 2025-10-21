@@ -5,11 +5,11 @@ edition = "2024"
 
 [dependencies]
 bevy = "0.17.2"
-rand = "0.8"
+rand = "0.9"
 
 # Enable getrandom's "js" feature for WASM builds
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.3", features = ["js"] }
 
 [profile.dev]
 opt-level = 1
