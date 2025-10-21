@@ -9,21 +9,36 @@ type EatingPreyQuery<'w, 's> = Query<
     'w,
     's,
     (&'static Transform, &'static mut Energy, &'static Genome),
-    (With<Prey>, Without<Plant>, Without<Predator>),
+    (
+        With<Prey>,
+        Without<Plant>,
+        Without<Predator>,
+        Without<Scavenger>,
+    ),
 >;
 
 type EatingPredatorQuery<'w, 's> = Query<
     'w,
     's,
     (&'static Transform, &'static mut Energy, &'static Genome),
-    (With<Predator>, Without<Prey>, Without<Plant>),
+    (
+        With<Predator>,
+        Without<Prey>,
+        Without<Plant>,
+        Without<Scavenger>,
+    ),
 >;
 
 type EatingPlantQuery<'w, 's> = Query<
     'w,
     's,
     (Entity, &'static Transform, &'static Energy),
-    (With<Plant>, Without<Prey>, Without<Predator>),
+    (
+        With<Plant>,
+        Without<Prey>,
+        Without<Predator>,
+        Without<Scavenger>,
+    ),
 >;
 
 type ScavengerEatingQuery<'w, 's> = Query<
@@ -35,6 +50,7 @@ type ScavengerEatingQuery<'w, 's> = Query<
         Without<Corpse>,
         Without<Prey>,
         Without<Predator>,
+        Without<Plant>,
     ),
 >;
 
@@ -47,6 +63,7 @@ type CorpseQuery<'w, 's> = Query<
         Without<Predator>,
         Without<Prey>,
         Without<Scavenger>,
+        Without<Plant>,
     ),
 >;
 

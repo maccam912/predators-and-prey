@@ -86,6 +86,7 @@ pub fn record_history_system(
             plant_count: stats.plants,
             prey_count: stats.prey,
             predator_count: stats.predators,
+            scavenger_count: stats.scavengers,
             total_energy,
             avg_plant_age,
             avg_prey_age,

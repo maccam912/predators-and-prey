@@ -1,1 +1,2 @@
 - Always make sure to run cargo fmt, and check and fix any warnings in cargo clippy unless there are concrete next steps which make the warnings acceptable.
+- When I ask you to do something that seems like there may have been a regression, add a test to make sure it doesn't happen again later.

@@ -35,7 +35,7 @@ impl Default for SimulationConfig {
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Clone)]
 pub struct PopulationStats {
     pub plants: usize,
     pub prey: usize,
@@ -64,6 +64,7 @@ pub struct SimulationSnapshot {
     pub plant_count: usize,
     pub prey_count: usize,
     pub predator_count: usize,
+    pub scavenger_count: usize,
     pub total_energy: f32,
     pub avg_plant_age: f32,
     pub avg_prey_age: f32,
@@ -79,6 +80,7 @@ impl Default for SimulationSnapshot {
             plant_count: 0,
             prey_count: 0,
             predator_count: 0,
+            scavenger_count: 0,
             total_energy: 0.0,
             avg_plant_age: 0.0,
             avg_prey_age: 0.0,

@@ -65,6 +65,7 @@ pub fn immigration_system(
     mut commands: Commands,
     prey: Query<&Prey>,
     predators: Query<&Predator>,
+    scavengers: Query<&Scavenger>,
     config: Res<SimulationConfig>,
     time: Res<Time>,
 ) {
@@ -112,6 +113,14 @@ pub fn immigration_system(
                 let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
                 let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
 
+                // Generate initial exploration waypoint
+                let waypoint_angle = rng.random_range(0.0..std::f32::consts::TAU);
+                let waypoint_distance = rng.random_range(100.0..200.0);
+                let waypoint_target = Vec2::new(
+                    x + waypoint_angle.cos() * waypoint_distance,
+                    y + waypoint_angle.sin() * waypoint_distance,
+                );
+
                 commands.spawn((
                     Predator,
                     Genome::random_predator(),
@@ -119,10 +128,55 @@ pub fn immigration_system(
                     Age(0.0),
                     Velocity(Vec2::ZERO),
                     HuntTarget(None),
+                    ExplorationWaypoint {
+                        target: waypoint_target,
+                        reached_threshold: 30.0,
+                    },
                     Transform::from_xyz(x, y, 2.0),
                     Sprite {
                         color: Color::srgb(0.9, 0.2, 0.2),
                         custom_size: Some(Vec2::splat(16.0)),
+                        ..default()
+                    },
+                ));
+            }
+        }
+    }
+
+    // Scavenger immigration - when population drops below 5
+    let scavenger_count = scavengers.iter().count();
+    if scavenger_count < 5 {
+        // 2% chance per second of immigration event
+        let immigration_chance = 0.02 * time.delta_secs();
+        if rng.random_bool(immigration_chance as f64) {
+            // Spawn 1-2 immigrant scavengers
+            let immigrant_count = rng.random_range(1..=2);
+            for _ in 0..immigrant_count {
+                let x = rng.random_range(-config.world_size.x / 2.0..config.world_size.x / 2.0);
+                let y = rng.random_range(-config.world_size.y / 2.0..config.world_size.y / 2.0);
+
+                // Generate initial exploration waypoint
+                let waypoint_angle = rng.random_range(0.0..std::f32::consts::TAU);
+                let waypoint_distance = rng.random_range(100.0..200.0);
+                let waypoint_target = Vec2::new(
+                    x + waypoint_angle.cos() * waypoint_distance,
+                    y + waypoint_angle.sin() * waypoint_distance,
+                );
+
+                commands.spawn((
+                    Scavenger,
+                    Genome::random_scavenger(),
+                    Energy(rng.random_range(50.0..90.0)),
+                    Age(0.0),
+                    Velocity(Vec2::ZERO),
+                    ExplorationWaypoint {
+                        target: waypoint_target,
+                        reached_threshold: 30.0,
+                    },
+                    Transform::from_xyz(x, y, 1.5),
+                    Sprite {
+                        color: Color::srgb(0.7, 0.5, 0.2),
+                        custom_size: Some(Vec2::splat(14.0)),
                         ..default()
                     },
                 ));

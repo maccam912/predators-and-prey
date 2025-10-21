@@ -211,7 +211,17 @@ pub fn draw_graphs_system(mut gizmos: Gizmos, history: Res<SimulationHistory>) {
         .max()
         .unwrap_or(1)
         .max(10);
-    let max_pop = max_plants.max(max_prey).max(max_predators) as f32;
+    let max_scavengers = history
+        .snapshots
+        .iter()
+        .map(|s| s.scavenger_count)
+        .max()
+        .unwrap_or(1)
+        .max(10);
+    let max_pop = max_plants
+        .max(max_prey)
+        .max(max_predators)
+        .max(max_scavengers) as f32;
 
     // Draw data points (last 100 snapshots)
     let start_idx = history.snapshots.len().saturating_sub(100);
@@ -252,6 +262,17 @@ pub fn draw_graphs_system(mut gizmos: Gizmos, history: Res<SimulationHistory>) {
             Vec2::new(x1, y1_pred),
             Vec2::new(x2, y2_pred),
             Color::srgb(0.9, 0.2, 0.2),
+        );
+
+        // Scavengers (brown)
+        let y1_scav = graph_y - graph_height
+            + (visible_snapshots[i].scavenger_count as f32 / max_pop) * graph_height;
+        let y2_scav = graph_y - graph_height
+            + (visible_snapshots[i + 1].scavenger_count as f32 / max_pop) * graph_height;
+        gizmos.line_2d(
+            Vec2::new(x1, y1_scav),
+            Vec2::new(x2, y2_scav),
+            Color::srgb(0.7, 0.5, 0.2),
         );
     }
 
