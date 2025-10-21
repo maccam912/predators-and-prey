@@ -9,7 +9,7 @@ use crate::resources::*;
 pub fn setup(mut commands: Commands, config: Res<SimulationConfig>) {
     commands.spawn(Camera2d);
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Spawn plants
     for _ in 0..config.initial_plants {

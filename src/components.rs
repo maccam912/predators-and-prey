@@ -14,7 +14,7 @@ pub struct Genome {
 
 impl Genome {
     pub fn random_plant() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         Self {
             speed: 0.0,
             size: rng.gen_range(0.5..1.5),
@@ -25,7 +25,7 @@ impl Genome {
     }
 
     pub fn random_prey() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         Self {
             speed: rng.gen_range(50.0..150.0),
             size: rng.gen_range(1.0..2.0),
@@ -36,7 +36,7 @@ impl Genome {
     }
 
     pub fn random_predator() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         Self {
             speed: rng.gen_range(80.0..180.0),
             size: rng.gen_range(1.5..3.0),
