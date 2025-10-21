@@ -34,7 +34,7 @@ pub fn eating_system(
     mut predators: EatingPredatorQuery,
     plants: EatingPlantQuery,
     prey_entities: Query<Entity, With<Prey>>,
-    corpses: Query<(Entity, &Transform, &Energy), With<Corpse>>,
+    corpses: Query<(Entity, &Transform, &Energy), (With<Corpse>, Without<Predator>, Without<Prey>)>,
     config: Res<SimulationConfig>,
 ) {
     // Prey eating plants
