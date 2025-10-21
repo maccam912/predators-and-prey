@@ -1,6 +1,7 @@
 // ===== SYSTEM MODULES =====
 
 pub mod environment;
+pub mod input;
 pub mod interaction;
 pub mod lifecycle;
 pub mod movement;
@@ -10,6 +11,7 @@ pub mod ui;
 
 // Re-export systems for easy access
 pub use environment::*;
+pub use input::*;
 pub use interaction::*;
 pub use lifecycle::*;
 pub use movement::*;

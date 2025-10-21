@@ -34,6 +34,7 @@ fn main() {
             time_since_last_record: 0.0,
         })
         .add_systems(Startup, setup)
+        .add_systems(Update, camera_controls_system)
         .add_systems(
             Update,
             (
